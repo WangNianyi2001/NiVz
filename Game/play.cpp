@@ -1,5 +1,4 @@
-#include "Win32GameEngine/engine.h"
-#include "config.h"
+#include "includes.h"
 #include <vector>
 #include <string>
 #include <fstream>
@@ -19,6 +18,8 @@ wstring name;
 unsigned scroll_speed;
 unsigned track_offset;
 unsigned bpm;
+
+void quit(HWND hWnd);
 
 LONGLONG getCurrentProgress() {
 	return GetTickCount64() - start_tick - track_offset;

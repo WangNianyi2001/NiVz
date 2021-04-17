@@ -1,5 +1,4 @@
-#include "Win32GameEngine/engine.h"
-#include "config.h"
+#include "includes.h"
 #include <io.h>
 #include <string>
 
