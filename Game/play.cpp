@@ -18,6 +18,11 @@ LONGLONG scroll_speed;
 LONGLONG start_tick;
 LONGLONG track_offset;
 unsigned bpm;
+int health;
+
+void miss() {
+	health -= 10;
+}
 
 void quit(HWND hWnd);
 
@@ -62,8 +67,10 @@ struct Track {
 			notes_buffer.erase(notes_buffer.begin());
 		}
 		LONGLONG const disappear = progress - overshoot_limit;
-		while(visible_notes.size() && visible_notes[0].track_offset < disappear)
+		while(visible_notes.size() && visible_notes[0].track_offset < disappear) {
+			miss();
 			visible_notes.erase(visible_notes.begin());
+		}
 	}
 	bool done() {
 		return !visible_notes.size() && !notes_buffer.size();
@@ -79,6 +86,30 @@ struct Track {
 			note_textures[note.type].paintOn(hdc, { screen_x, area.top });
 		}
 	}
+	vector<Note>::iterator getHitNote(LONGLONG progress) {
+		if(!visible_notes.size())
+			return visible_notes.end();
+		auto res = visible_notes.begin();
+		// Find closest note
+		for(
+			auto it = res;
+			it != visible_notes.end() &&
+			abs(it->track_offset - progress) < abs(res->track_offset - progress);
+			res = it++
+		);
+		if(res->track_offset - progress > overshoot_limit)
+			return visible_notes.end();
+		return res;
+	}
+	void hit(LONGLONG progress, char note_type) {
+		auto it = getHitNote(getCurrentProgress());
+		if(it == visible_notes.end())
+			return;
+		Note note = *it;
+		visible_notes.erase(it);
+		if(note.type != note_type)
+			miss();
+	}
 } tr_top{ RECT{ 0, 32, vwidth, 64 } }, tr_bottom{ { RECT{ 0, 96, vwidth, 128 } } };
 
 bool loadTrack(wstring file_dir) {
@@ -86,7 +117,7 @@ bool loadTrack(wstring file_dir) {
 	wifstream file(file_dir, ios::in);
 	if(!file.is_open())
 		return false;
-	file >> buffer;
+	getline(file, buffer);
 	name = buffer;
 	file >> buffer;
 	scroll_speed = stoi(buffer);
@@ -122,6 +153,7 @@ bool loadTrack(wstring file_dir) {
 }
 
 void init(HWND hWnd, void *p_track_name) {
+	health = 100;
 	wstring &track_name = *(wstring *)p_track_name;
 	// Load track from file
 	auto file_dir = wstring(tracks_dir) + track_name + L"/score.txt";
@@ -145,6 +177,8 @@ LRESULT paint(HWND hWnd, WPARAM, LPARAM) {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
 	FillRect(vscreen.hdc, &vrect, (HBRUSH)GetStockObject(BLACK_BRUSH));
+	RECT health_bar{ 0, 100, vwidth * health / 100.0, 108 };
+	FillRect(vscreen.hdc, &health_bar, (HBRUSH)GetStockObject(WHITE_BRUSH));
 	LONGLONG const progress = getCurrentProgress();
 	tr_top.paint(vscreen.hdc, progress);
 	tr_bottom.paint(vscreen.hdc, progress);
@@ -162,7 +196,26 @@ LRESULT timer(HWND hWnd, WPARAM, LPARAM) {
 	return 0;
 }
 
+map<char, pair<int, char>> key_map{
+	{ 'W', { 1, 'w' } },
+	{ 'S', { 1, 's' } },
+	{ 'A', { 1, 'a' } },
+	{ 'D', { 1, 'd' } },
+	{ 'I', { 2, 'w' } },
+	{ 'K', { 2, 's' } },
+	{ 'J', { 2, 'a' } },
+	{ 'L', { 2, 'd' } },
+};
+LRESULT keydown(HWND hWnd, WPARAM keycode, LPARAM) {
+	if(key_map.count(keycode)) {
+		auto p = key_map[(char)keycode];
+		(p.first == 1 ? tr_top : tr_bottom).hit(getCurrentProgress(), p.second);
+	}
+	return 0;
+}
+
 Scene scene("play", &init, {
 	{ WM_PAINT, { (EventHandler::Handler)&paint } },
 	{ WM_TIMER, { (EventHandler::Handler)&timer } },
+	{ WM_KEYDOWN, { (EventHandler::Handler)&keydown } },
 });
