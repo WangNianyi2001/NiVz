@@ -27,7 +27,7 @@ void miss() {
 void quit(HWND hWnd);
 
 LONGLONG getCurrentProgress() {
-	return GetTickCount64() - start_tick - track_offset;
+	return GetTickCount64() - start_tick;
 }
 
 map<char, Texture> note_textures{
@@ -162,6 +162,8 @@ void init(HWND hWnd, void *p_track_name) {
 		return;
 	}
 	start_tick = GetTickCount64() + (ULONGLONG)track_offset;
+	auto bgm_dir = (wstring(tracks_dir) + track_name + L"/bgm.wav");
+	playSound(bgm_dir.c_str());
 	SetTimer(hWnd, timer_id, 1000 / fps, NULL);
 	return;
 }
@@ -177,7 +179,7 @@ LRESULT paint(HWND hWnd, WPARAM, LPARAM) {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
 	FillRect(vscreen.hdc, &vrect, (HBRUSH)GetStockObject(BLACK_BRUSH));
-	RECT health_bar{ 0, 100, vwidth * health / 100.0, 108 };
+	RECT health_bar{ 0, 100, (long)(vwidth * health / 100.0), 108 };
 	FillRect(vscreen.hdc, &health_bar, (HBRUSH)GetStockObject(WHITE_BRUSH));
 	LONGLONG const progress = getCurrentProgress();
 	tr_top.paint(vscreen.hdc, progress);
