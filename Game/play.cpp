@@ -1,11 +1,10 @@
 #include "includes.h"
 #include <vector>
+#include <map>
 #include <string>
 #include <fstream>
 
 using namespace Win32GameEngine;
-
-LONGLONG start_tick;
 
 struct Note {
 	char type;
@@ -15,8 +14,9 @@ struct Note {
 constexpr char const null_note_type = 'n';
 
 wstring name;
-unsigned scroll_speed;
-unsigned track_offset;
+LONGLONG scroll_speed;
+LONGLONG start_tick;
+LONGLONG track_offset;
 unsigned bpm;
 
 void quit(HWND hWnd);
@@ -25,7 +25,32 @@ LONGLONG getCurrentProgress() {
 	return GetTickCount64() - start_tick - track_offset;
 }
 
-Bitmap t_note(L"../Textures/note.bmp");
+map<char, Texture> note_textures{
+	{ 'w', Texture({
+		{ 64, 64 },
+		{ 32, 32 },
+		new Bitmap(L"../Textures/w.bmp"),
+		new Bitmap(L"../Textures/w.mask.bmp")
+	}) },
+	{ 's', Texture({
+		{ 64, 64 },
+		{ 32, 32 },
+		new Bitmap(L"../Textures/s.bmp"),
+		new Bitmap(L"../Textures/s.mask.bmp")
+	}) },
+	{ 'a', Texture({
+		{ 64, 64 },
+		{ 32, 32 },
+		new Bitmap(L"../Textures/a.bmp"),
+		new Bitmap(L"../Textures/a.mask.bmp")
+	}) },
+	{ 'd', Texture({
+		{ 64, 64 },
+		{ 32, 32 },
+		new Bitmap(L"../Textures/d.bmp"),
+		new Bitmap(L"../Textures/d.mask.bmp")
+	}) },
+};
 struct Track {
 	RECT area;
 	vector<Note> notes_buffer, visible_notes;
@@ -51,10 +76,10 @@ struct Track {
 		for(Note note : visible_notes) {
 			LONGLONG const delta = note.track_offset - progress;
 			int screen_x = area.left + delta * (area.right - area.left) / scroll_speed;
-			t_note.paintOn(hdc, { screen_x, area.top });
+			note_textures[note.type].paintOn(hdc, { screen_x, area.top });
 		}
 	}
-} tr_top{ RECT{ 0, 0, vwidth, 64 } }, tr_bottom{ { RECT{ 0, 64, vwidth, 128 } } };
+} tr_top{ RECT{ 0, 32, vwidth, 64 } }, tr_bottom{ { RECT{ 0, 96, vwidth, 128 } } };
 
 bool loadTrack(wstring file_dir) {
 	wstring buffer;
@@ -119,6 +144,7 @@ void quit(HWND hWnd) {
 LRESULT paint(HWND hWnd, WPARAM, LPARAM) {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
+	FillRect(vscreen.hdc, &vrect, (HBRUSH)GetStockObject(BLACK_BRUSH));
 	LONGLONG const progress = getCurrentProgress();
 	tr_top.paint(vscreen.hdc, progress);
 	tr_bottom.paint(vscreen.hdc, progress);

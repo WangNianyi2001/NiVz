@@ -1,0 +1,12 @@
+.git
+.vs
+
+Debug
+Release
+*/Debug
+*/Release
+
+*.vcxproj.user
+
+Game/includes.h
+Tracks
