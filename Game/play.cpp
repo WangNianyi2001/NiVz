@@ -9,17 +9,19 @@ using namespace Win32GameEngine;
 LONGLONG start_tick;
 
 struct Note {
-	char note_type;
-	int offset;
+	char type;
+	int track_offset;
 };
+
+constexpr char const null_note_type = 'n';
 
 wstring name;
 unsigned scroll_speed;
-unsigned offset;
+unsigned track_offset;
 unsigned bpm;
 
 LONGLONG getCurrentProgress() {
-	return GetTickCount64() - start_tick - offset;
+	return GetTickCount64() - start_tick - track_offset;
 }
 
 Bitmap t_note(L"../Textures/note.bmp");
@@ -29,12 +31,12 @@ struct Track {
 	void updateNotes() {
 		LONGLONG const progress = getCurrentProgress();
 		LONGLONG const appear_tick = progress + scroll_speed;
-		while(notes_buffer.size() && notes_buffer[0].offset <= appear_tick) {
+		while(notes_buffer.size() && notes_buffer[0].track_offset <= appear_tick) {
 			visible_notes.push_back(notes_buffer[0]);
 			notes_buffer.erase(notes_buffer.begin());
 		}
 		LONGLONG const disappear = progress - overshoot_limit;
-		while(visible_notes.size() && visible_notes[0].offset < disappear)
+		while(visible_notes.size() && visible_notes[0].track_offset < disappear)
 			visible_notes.erase(visible_notes.begin());
 	}
 	bool done() {
@@ -46,7 +48,7 @@ struct Track {
 	}
 	void paint(HDC hdc, LONGLONG progress) {
 		for(Note note : visible_notes) {
-			LONGLONG const delta = note.offset - progress;
+			LONGLONG const delta = note.track_offset - progress;
 			int screen_x = area.left + delta * (area.right - area.left) / scroll_speed;
 			t_note.paintOn(hdc, { screen_x, area.top });
 		}
@@ -63,7 +65,7 @@ bool loadTrack(wstring file_dir) {
 	file >> buffer;
 	scroll_speed = stoi(buffer);
 	file >> buffer;
-	offset = stoi(buffer);
+	track_offset = stoi(buffer);
 	file >> buffer;
 	bpm = stoi(buffer);
 	float top_offset = .0f, bottom_offset = .0f;
@@ -73,18 +75,20 @@ bool loadTrack(wstring file_dir) {
 		file >> buffer;
 		auto const player_bits = stoi(buffer);
 		file >> buffer;
-		note.note_type = buffer[0];
+		note.type = buffer[0];
 		file >> buffer;
 		auto const interval = stoi(buffer);
 		if(player_bits & 1) {
-			note.offset = top_offset * beat_length;
+			note.track_offset = top_offset * beat_length;
 			top_offset += 1.0f / interval;
-			tr_top.notes_buffer.push_back(note);
+			if(note.type != null_note_type)
+				tr_top.notes_buffer.push_back(note);
 		}
 		if(player_bits & 2) {
-			note.offset = bottom_offset * beat_length;
+			note.track_offset = bottom_offset * beat_length;
 			bottom_offset += 1.0f / interval;
-			tr_bottom.notes_buffer.push_back(note);
+			if(note.type != null_note_type)
+				tr_bottom.notes_buffer.push_back(note);
 		}
 	}
 	file.close();
@@ -96,9 +100,10 @@ void init(HWND hWnd, void *p_track_name) {
 	// Load track from file
 	auto file_dir = wstring(tracks_dir) + track_name + L"/score.txt";
 	if(!loadTrack(file_dir)) {
+		quit(hWnd);
 		return;
 	}
-	start_tick = GetTickCount64() + (ULONGLONG)offset;
+	start_tick = GetTickCount64() + (ULONGLONG)track_offset;
 	SetTimer(hWnd, timer_id, 1000 / fps, NULL);
 	return;
 }
