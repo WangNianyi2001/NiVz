@@ -30,30 +30,34 @@ LONGLONG getCurrentProgress() {
 	return GetTickCount64() - start_tick;
 }
 
+Bitmap *makeTexture(wchar_t const *file_name) {
+	return new Bitmap((wstring(textures_dir) + file_name + L".bmp").c_str());
+}
+
 map<char, Texture> note_textures{
 	{ 'w', Texture({
 		{ 64, 64 },
-		{ 32, 32 },
-		new Bitmap(L"../Textures/w.bmp"),
-		new Bitmap(L"../Textures/w.mask.bmp")
+		{ 0, 0 },
+		makeTexture(L"w"),
+		makeTexture(L"w.mask"),
 	}) },
 	{ 's', Texture({
 		{ 64, 64 },
-		{ 32, 32 },
-		new Bitmap(L"../Textures/s.bmp"),
-		new Bitmap(L"../Textures/s.mask.bmp")
+		{ 0, 0 },
+		makeTexture(L"s"),
+		makeTexture(L"s.mask"),
 	}) },
 	{ 'a', Texture({
 		{ 64, 64 },
-		{ 32, 32 },
-		new Bitmap(L"../Textures/a.bmp"),
-		new Bitmap(L"../Textures/a.mask.bmp")
+		{ 0, 0 },
+		makeTexture(L"a"),
+		makeTexture(L"a.mask"),
 	}) },
 	{ 'd', Texture({
 		{ 64, 64 },
-		{ 32, 32 },
-		new Bitmap(L"../Textures/d.bmp"),
-		new Bitmap(L"../Textures/d.mask.bmp")
+		{ 0, 0 },
+		makeTexture(L"d"),
+		makeTexture(L"d.mask"),
 	}) },
 };
 struct Track {
@@ -115,7 +119,7 @@ struct Track {
 				health = 100;
 		}
 	}
-} tr_top{ RECT{ 0, 32, vwidth, 0 } }, tr_bottom{ { RECT{ 0, 96, vwidth, 0 } } };
+} tr_top{ RECT{ 0, 0, vwidth, 0 } }, tr_bottom{ { RECT{ 0, 128, vwidth, 0 } } };
 
 bool loadTrack(wstring file_dir) {
 	wstring buffer;
