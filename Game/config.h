@@ -12,3 +12,4 @@ static Win32GameEngine::PureColor vscreen(0, { vwidth, vheight });
 static RECT vrect = { 0, 0, vwidth, vheight };
 
 static constexpr wchar_t const *tracks_dir = L"../Tracks/";
+static constexpr wchar_t const *textures_dir = L"../Textures/";

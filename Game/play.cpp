@@ -110,7 +110,7 @@ struct Track {
 		if(note.type != note_type)
 			miss();
 	}
-} tr_top{ RECT{ 0, 32, vwidth, 64 } }, tr_bottom{ { RECT{ 0, 96, vwidth, 128 } } };
+} tr_top{ RECT{ 0, 32, vwidth, 0 } }, tr_bottom{ { RECT{ 0, 96, vwidth, 0 } } };
 
 bool loadTrack(wstring file_dir) {
 	wstring buffer;
@@ -175,15 +175,20 @@ void quit(HWND hWnd) {
 	return;
 }
 
+Bitmap background((wstring(textures_dir) + L"background.bmp").c_str());
+Bitmap inner((wstring(textures_dir) + L"inner.bmp").c_str());
+PureColor vinner(0, { 512, 192 });
 LRESULT paint(HWND hWnd, WPARAM, LPARAM) {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
-	FillRect(vscreen.hdc, &vrect, (HBRUSH)GetStockObject(BLACK_BRUSH));
-	RECT health_bar{ 0, 100, (long)(vwidth * health / 100.0), 108 };
-	FillRect(vscreen.hdc, &health_bar, (HBRUSH)GetStockObject(WHITE_BRUSH));
+	background.paintOn(vscreen.hdc, { 0, 0 });
+	inner.paintOn(vinner.hdc, { 0, 0 });
 	LONGLONG const progress = getCurrentProgress();
-	tr_top.paint(vscreen.hdc, progress);
-	tr_bottom.paint(vscreen.hdc, progress);
+	tr_top.paint(vinner.hdc, progress);
+	tr_bottom.paint(vinner.hdc, progress);
+	vinner.paintOn(vscreen.hdc, { 64, 84 });
+	RECT health_bar{ 0, 0, (long)(vwidth * health / 100.0), 8 };
+	FillRect(vscreen.hdc, &health_bar, (HBRUSH)GetStockObject(WHITE_BRUSH));
 	vscreen.paintOn(hdc, { 0, 0 });
 	EndPaint(hWnd, &ps);
 	return 0;

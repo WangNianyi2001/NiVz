@@ -28,7 +28,7 @@ void loadTrack(vector<wstring>::iterator tr_top, HWND hWnd) {
 }
 
 LRESULT init(HWND hWnd) {
-	// SetWindowLong(hWnd, GWL_STYLE, NULL);
+	SetWindowLong(hWnd, GWL_STYLE, NULL);
 	// ShowWindow(hWnd, SW_MAXIMIZE);
 	getTrackList();
 	loadTrack(track_list.begin(), hWnd);
