@@ -108,7 +108,12 @@ struct Track {
 		Note note = *it;
 		visible_notes.erase(it);
 		if(note.type != note_type)
-			miss();
+			health -= 10;
+		else {
+			++health;
+			if(health > 100)
+				health = 100;
+		}
 	}
 } tr_top{ RECT{ 0, 32, vwidth, 0 } }, tr_bottom{ { RECT{ 0, 96, vwidth, 0 } } };
 
@@ -172,6 +177,7 @@ void quit(HWND hWnd) {
 	KillTimer(hWnd, timer_id);
 	tr_top.clear();
 	tr_bottom.clear();
+	Scene::switchTo("level", hWnd, nullptr);
 	return;
 }
 
@@ -197,7 +203,7 @@ LRESULT paint(HWND hWnd, WPARAM, LPARAM) {
 LRESULT timer(HWND hWnd, WPARAM, LPARAM) {
 	tr_top.updateNotes();
 	tr_bottom.updateNotes();
-	if(tr_top.done() && tr_bottom.done())
+	if(health <= 0 || tr_top.done() && tr_bottom.done())
 		quit(hWnd);
 	InvalidateRect(hWnd, NULL, true);
 	return 0;
