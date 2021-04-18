@@ -178,6 +178,7 @@ void quit(HWND hWnd) {
 	tr_top.clear();
 	tr_bottom.clear();
 	Scene::switchTo("level", hWnd, nullptr);
+	playSound(nullptr, NULL);
 	return;
 }
 
