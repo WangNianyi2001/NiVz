@@ -3,7 +3,7 @@
 using namespace Win32GameEngine;
 
 LRESULT init(HWND hWnd) {
-	SetWindowLong(hWnd, GWL_STYLE, NULL);
+	// SetWindowLong(hWnd, GWL_STYLE, NULL);
 	// ShowWindow(hWnd, SW_MAXIMIZE);
 	Scene::switchTo("level", hWnd, nullptr);
 	return 0;
@@ -28,7 +28,7 @@ int APIENTRY wWinMain(
 	Window window = Window(hInstance, Window::InitArg{
 		.class_name = L"Window",
 		.title = L"NiVz",
-		.width = vwidth, .height = vheight,
+		.width = vwidth, .height = vheight + 32,
 		.style = WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX,
 		.event_processor = eventProcessor,
 	});

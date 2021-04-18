@@ -20,10 +20,6 @@ LONGLONG track_offset;
 unsigned bpm;
 int health;
 
-void miss() {
-	health -= 10;
-}
-
 void quit(HWND hWnd);
 
 LONGLONG getCurrentProgress() {
@@ -72,7 +68,7 @@ struct Track {
 		}
 		LONGLONG const disappear = progress - overshoot_limit;
 		while(visible_notes.size() && visible_notes[0].track_offset < disappear) {
-			miss();
+			health -= 10;
 			visible_notes.erase(visible_notes.begin());
 		}
 	}
@@ -186,13 +182,12 @@ void quit(HWND hWnd) {
 }
 
 Bitmap background((wstring(textures_dir) + L"background.bmp").c_str());
-Bitmap inner((wstring(textures_dir) + L"inner.bmp").c_str());
 PureColor vinner(0, { 512, 192 });
 LRESULT paint(HWND hWnd, WPARAM, LPARAM) {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
 	background.paintOn(vscreen.hdc, { 0, 0 });
-	inner.paintOn(vinner.hdc, { 0, 0 });
+	background.paintOn(vinner.hdc, { -64, -84 });
 	LONGLONG const progress = getCurrentProgress();
 	tr_top.paint(vinner.hdc, progress);
 	tr_bottom.paint(vinner.hdc, progress);

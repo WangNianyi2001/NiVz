@@ -36,10 +36,11 @@ auto hFont = CreateFont(
 	48, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
 	CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"UD Digi Kyokasho N-B"
 );
-
+Bitmap level_background((wstring(textures_dir) + L"start.bmp").c_str());
 LRESULT level_paint(HWND hWnd, WPARAM, LPARAM) {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
+	level_background.paintOn(hdc, { 0, 0 });
 	SelectObject(hdc, hFont);
 	SetTextAlign(hdc, TA_CENTER | TA_BASELINE);
 	TextOutW(hdc, vwidth / 2, vheight / 2, curr->c_str(), curr->size());
