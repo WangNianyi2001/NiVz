@@ -32,10 +32,17 @@ void level_init(HWND hWnd, void *) {
 	InvalidateRect(hWnd, NULL, true);
 }
 
+auto hFont = CreateFont(
+	48, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
+	CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH, L"UD Digi Kyokasho N-B"
+);
+
 LRESULT level_paint(HWND hWnd, WPARAM, LPARAM) {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
-	TextOutW(hdc, 0, 0, curr->c_str(), curr->size());
+	SelectObject(hdc, hFont);
+	SetTextAlign(hdc, TA_CENTER | TA_BASELINE);
+	TextOutW(hdc, vwidth / 2, vheight / 2, curr->c_str(), curr->size());
 	EndPaint(hWnd, &ps);
 	return 0;
 }
@@ -45,12 +52,14 @@ LRESULT level_keydown(HWND hWnd, WPARAM keycode, LPARAM) {
 	case VK_RETURN:
 		loadTrack(curr, hWnd);
 		return 0;
+	case 'A':
 	case VK_LEFT:
 		if(curr == track_list.begin())
 			curr = track_list.end();
 		--curr;
 		InvalidateRect(hWnd, NULL, true);
 		return 0;
+	case 'D':
 	case VK_RIGHT:
 		++curr;
 		if(curr == track_list.end())
